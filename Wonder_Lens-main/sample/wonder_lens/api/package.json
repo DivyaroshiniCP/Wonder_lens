@@ -1,0 +1,10 @@
+{
+  "name": "talking-objects-api",
+  "version": "1.0.0",
+  "dependencies": {
+    "@azure-rest/ai-vision-image-analysis": "^1.0.0-beta.3",
+    "@azure/openai": "^1.0.0-beta.12",
+    "microsoft-cognitiveservices-speech-sdk": "^1.34.0",
+    "@azure/core-auth": "^1.7.0"
+  }
+}

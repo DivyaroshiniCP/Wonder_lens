@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Talking Objects</title>
+    <style>
+        body { font-family: sans-serif; text-align: center; background: #222; color: #fff; padding: 20px; }
+        video, canvas { width: 100%; max-width: 400px; border-radius: 10px; border: 2px solid #555; }
+        button { padding: 15px 30px; font-size: 18px; background: #0078D4; color: white; border: none; border-radius: 5px; cursor: pointer; margin-top: 15px; }
+        button:disabled { background: #555; }
+        .hidden { display: none; }
+        #response { margin-top: 20px; font-size: 1.2rem; color: #00e5ff; min-height: 50px; }
+    </style>
+</head>
+<body>
+    <h1>📸 Scan an Object</h1>
+    <video id="video" autoplay playsinline></video>
+    <canvas id="canvas" class="hidden"></canvas>
+    <br>
+    <button id="snapBtn">📸 Snap & Listen</button>
+    <p id="status"></p>
+    <p id="response"></p>
+
+    <script>
+        const video = document.getElementById('video');
+        const canvas = document.getElementById('canvas');
+        const snapBtn = document.getElementById('snapBtn');
+        const status = document.getElementById('status');
+        const responseText = document.getElementById('response');
+
+        // Start Camera
+        navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } })
+            .then(stream => video.srcObject = stream);
+
+        snapBtn.addEventListener('click', async () => {
+            // Capture image
+            canvas.width = video.videoWidth;
+            canvas.height = video.videoHeight;
+            canvas.getContext('2d').drawImage(video, 0, 0);
+            const imageBase64 = canvas.toDataURL('image/jpeg');
+
+            // Update UI
+            status.innerText = "👀 Looking... 🧠 Thinking... 🗣️ Speaking...";
+            snapBtn.disabled = true;
+
+            try {
+                const req = await fetch('/api/talkToMe', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ image: imageBase64 })
+                });
+                
+                if(!req.ok) throw new Error("API Error");
+
+                const data = await req.json();
+                
+                status.innerText = "";
+                responseText.innerText = `"${data.message}"`;
+                snapBtn.disabled = false;
+
+                // Play Audio
+                const audio = new Audio("data:audio/wav;base64," + data.audio);
+                audio.play();
+            } catch (err) {
+                status.innerText = "❌ Error: " + err.message;
+                snapBtn.disabled = false;
+            }
+        });
+    </script>
+</body>
+</html>
